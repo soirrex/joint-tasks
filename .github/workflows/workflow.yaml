@@ -1,0 +1,46 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  utins-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: install deps
+        run: npm i
+      - name: unit tests
+        run: npm run test:unit
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test-only-db-user
+          POSTGRES_PASSWORD: test-only-db-password
+          POSTGRES_DB: test-only-db-name
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: install deps
+        run: npm i
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U test-only-db-user && break
+            echo "Waiting for Postgres..."
+            sleep 1
+          done
+        env:
+          PGPASSWORD: test-only-db-password
+      - name: e2e tests
+        run: npm run test:e2e
+        env:
+          DB_NAME: "test-only-db-name"
+          DB_USER: "test-only-db-user"
+          DB_PASSWORD: "test-only-db-password"
+          DB_HOST: "localhost"
+          DB_PORT: "5432"
+          JWT_SECRET: "test-only-jwt"
