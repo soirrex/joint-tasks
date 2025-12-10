@@ -1,9 +1,14 @@
 import request from "supertest";
 import { UserModel } from "../src/models/user.model";
 import { fastify } from "../src/index";
+import { inversifyContainer } from "../src/container";
+import { DBConfig } from "../src/config/db.config";
 
 describe("auth e2e test", () => {
   beforeAll(async () => {
+    const db = inversifyContainer.get(DBConfig);
+    await db.init();
+
     await fastify.ready();
   });
 

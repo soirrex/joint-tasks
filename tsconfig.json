@@ -27,7 +27,7 @@
     "skipLibCheck": true,
     "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
-    
+
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },

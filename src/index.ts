@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import Fastify, { type FastifyReply, FastifyRequest } from "fastify";
-import { DBConfig } from "./config/db.config";
 import { AuthController } from "./api/auth/auth.controller";
 import { BaseHttpError } from "./common/classes/error.class";
 import fastifySwagger from "@fastify/swagger";
@@ -9,20 +8,14 @@ import fastifyCookie from "@fastify/cookie";
 import { inversifyContainer } from "./container";
 import { TaskController } from "./api/task/task.controller";
 import { ContainerController } from "./api/container/container.controller";
-import { initDBModels } from "./models/init-models";
+import { DBConfig } from "./config/db.config";
 
 const fastify = Fastify({
   logger: true,
 });
 
 const db = inversifyContainer.get(DBConfig);
-
-db.sequelize.sync({ alter: true, logging: false });
-db.sequelize.authenticate().catch((err: unknown) => {
-  throw new Error(`DB error: ${err}`);
-});
-
-initDBModels();
+db.init();
 
 fastify.addHook("onError", (request: FastifyRequest, reply: FastifyReply, err) => {
   if (err instanceof BaseHttpError) {

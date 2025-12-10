@@ -5,6 +5,9 @@ export class ContainerModel extends Model {
   public name!: string;
   public creatorId!: string;
 
+  readonly createdAt!: Date;
+  readonly updatedAt!: Date;
+
   static initialize(sequelize: Sequelize) {
     ContainerModel.init(
       {
