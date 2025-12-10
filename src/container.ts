@@ -11,6 +11,7 @@ import { ContainerController } from "./api/container/container.controller";
 import { ContainerService } from "./api/container/container.service";
 import { OnRequestHooks } from "./common/hooks/on-request.hooks";
 import { DBConfig } from "./config/db.config";
+import { ContainerRepository } from "./repository/container.repository";
 
 export const inversifyContainer = new Container();
 
@@ -31,3 +32,4 @@ inversifyContainer.bind(JwtService).toSelf();
 inversifyContainer.bind(OnRequestHooks).toSelf();
 
 inversifyContainer.bind(UserRepository).toSelf();
+inversifyContainer.bind(ContainerRepository).toSelf();

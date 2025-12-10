@@ -6,7 +6,7 @@ import { UnauthorizedError } from "../classes/error.class";
 
 @injectable()
 export class JwtService {
-  constructor(@inject(EnvConfig) private config: EnvConfig) { }
+  constructor(@inject(EnvConfig) private config: EnvConfig) {}
 
   create(userId: string): string {
     const payload: JwtPayload = { userId: userId };
