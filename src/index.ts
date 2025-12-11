@@ -7,8 +7,8 @@ import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastifyCookie from "@fastify/cookie";
 import { inversifyContainer } from "./container";
 import { TaskController } from "./api/task/task.controller";
-import { ContainerController } from "./api/container/container.controller";
 import { DBConfig } from "./config/db.config";
+import { CollectionController } from "./api/collection/collection.controller";
 
 const fastify = Fastify({
   logger: true,
@@ -64,9 +64,9 @@ fastify.register(taskController.registerRouters.bind(taskController), {
   prefix: "/tasks",
 });
 
-const containerController = inversifyContainer.get(ContainerController);
-fastify.register(containerController.registerRouters.bind(containerController), {
-  prefix: "/containers",
+const collectionController = inversifyContainer.get(CollectionController);
+fastify.register(collectionController.registerRouters.bind(collectionController), {
+  prefix: "/collections",
 });
 
 fastify.listen({ port: 3000 }, (err) => {

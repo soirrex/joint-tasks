@@ -1,18 +1,18 @@
 import { Sequelize } from "sequelize";
-import { ContainerModel } from "./container.model";
+import { CollectionModel } from "./collection.model";
 import { UserModel } from "./user.model";
 
 export async function initDBModels(sequelize: Sequelize) {
   UserModel.initialize(sequelize);
-  ContainerModel.initialize(sequelize);
+  CollectionModel.initialize(sequelize);
 
-  ContainerModel.belongsTo(UserModel, {
+  CollectionModel.belongsTo(UserModel, {
     foreignKey: "creatorId",
     targetKey: "id",
     onDelete: "CASCADE",
   });
 
-  UserModel.hasMany(ContainerModel, {
+  UserModel.hasMany(CollectionModel, {
     foreignKey: "creatorId",
     sourceKey: "id",
   });

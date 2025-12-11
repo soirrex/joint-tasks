@@ -1,13 +1,13 @@
 import { FastifyInstance, FastifyReply } from "fastify";
 import { inject, injectable } from "inversify";
-import { ContainerService } from "./container.service";
+import { CollectionService } from "./collection.service";
 import { OnRequestHooks } from "../../common/hooks/on-request.hooks";
 import { AuthFastifyRequest } from "../../common/interfaces/auth-request.interfase";
 
 @injectable()
-export class ContainerController {
+export class CollectionController {
   constructor(
-    @inject(ContainerService) private containerService: ContainerService,
+    @inject(CollectionService) private collectionService: CollectionService,
     @inject(OnRequestHooks) private onRequestHooks: OnRequestHooks,
   ) {}
 
@@ -17,9 +17,9 @@ export class ContainerController {
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
         schema: {
-          summary: "Create new container",
-          description: "Create new container",
-          tags: ["container"],
+          summary: "Create new collection",
+          description: "Create new collection",
+          tags: ["collection"],
           body: {
             type: "object",
             properties: {
@@ -28,11 +28,11 @@ export class ContainerController {
           },
           response: {
             201: {
-              description: "Container was created successfully",
+              description: "Collection was created successfully",
               type: "object",
               properties: {
                 message: { type: "string" },
-                container: {
+                collection: {
                   type: "object",
                   properties: {
                     id: { type: "number" },
@@ -47,27 +47,27 @@ export class ContainerController {
           },
         },
       },
-      this.createContainer.bind(this),
+      this.createCollection.bind(this),
     );
 
-    fastify.delete<{ Params: { containerId: string } }>(
-      "/delete/:containerId",
+    fastify.delete<{ Params: { collectionId: string } }>(
+      "/delete/:collectionId",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
         schema: {
-          summary: "Delete container by id",
-          description: "Delete container by id",
-          tags: ["container"],
+          summary: "Delete collection by id",
+          description: "Delete collection by id",
+          tags: ["collection"],
           params: {
             type: "object",
             properties: {
-              containerId: { type: "string", description: "container id" },
+              collectionId: { type: "string", description: "collection id" },
             },
-            required: ["containerId"],
+            required: ["collectionId"],
           },
           response: {
             200: {
-              description: "Container was deleted successfully",
+              description: "Collection was deleted successfully",
               type: "object",
               properties: {
                 message: { type: "string" },
@@ -78,36 +78,36 @@ export class ContainerController {
               $ref: "ErrorResponseSchema",
             },
             403: {
-              description: "Only the creator can delete the containera",
+              description: "Only the creator can delete the collectiona",
               $ref: "ErrorResponseSchema",
             },
           },
         },
       },
-      this.deleteContainerById.bind(this),
+      this.deleteCollectionById.bind(this),
     );
   }
 
-  private async createContainer(
+  private async createCollection(
     request: AuthFastifyRequest & { body: { name: string } },
     reply: FastifyReply,
   ) {
     const { name } = request.body;
     const userId = request.userId;
 
-    const message = await this.containerService.createContainer(userId!, name);
+    const message = await this.collectionService.createCollection(userId!, name);
 
     reply.code(201).send(message);
   }
 
-  private async deleteContainerById(
-    request: AuthFastifyRequest & { params: { containerId: string } },
+  private async deleteCollectionById(
+    request: AuthFastifyRequest & { params: { collectionId: string } },
     reply: FastifyReply,
   ) {
-    const containerId = request.params.containerId;
+    const collectionId = request.params.collectionId;
     const userId = request.userId;
 
-    const message = await this.containerService.deleteContainerById(userId!, containerId);
+    const message = await this.collectionService.deleteCollectionById(userId!, collectionId);
 
     reply.code(201).send(message);
   }

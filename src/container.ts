@@ -7,11 +7,11 @@ import { AuthController } from "./api/auth/auth.controller";
 import { JwtService } from "./common/services/jwt.service";
 import { TaskController } from "./api/task/task.controller";
 import { TaskService } from "./api/task/task.service";
-import { ContainerController } from "./api/container/container.controller";
-import { ContainerService } from "./api/container/container.service";
+import { CollectionController } from "./api/collection/collection.controller";
+import { CollectionService } from "./api/collection/collection.service";
 import { OnRequestHooks } from "./common/hooks/on-request.hooks";
 import { DBConfig } from "./config/db.config";
-import { ContainerRepository } from "./repository/container.repository";
+import { CollectionRepository } from "./repository/collection.repository";
 
 export const inversifyContainer = new Container();
 
@@ -24,12 +24,12 @@ inversifyContainer.bind(AuthController).toSelf();
 inversifyContainer.bind(TaskController).toSelf();
 inversifyContainer.bind(TaskService).toSelf();
 
-inversifyContainer.bind(ContainerController).toSelf();
-inversifyContainer.bind(ContainerService).toSelf();
+inversifyContainer.bind(CollectionController).toSelf();
+inversifyContainer.bind(CollectionService).toSelf();
 
 inversifyContainer.bind(JwtService).toSelf();
 
 inversifyContainer.bind(OnRequestHooks).toSelf();
 
 inversifyContainer.bind(UserRepository).toSelf();
-inversifyContainer.bind(ContainerRepository).toSelf();
+inversifyContainer.bind(CollectionRepository).toSelf();

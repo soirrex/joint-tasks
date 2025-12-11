@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-export class ContainerModel extends Model {
+export class CollectionModel extends Model {
   public id!: number;
   public name!: string;
   public creatorId!: string;
@@ -9,7 +9,7 @@ export class ContainerModel extends Model {
   readonly updatedAt!: Date;
 
   static initialize(sequelize: Sequelize) {
-    ContainerModel.init(
+    CollectionModel.init(
       {
         id: {
           type: DataTypes.BIGINT,
