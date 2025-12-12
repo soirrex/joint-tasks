@@ -5,8 +5,6 @@ import { UserRepository } from "./repository/user.repository";
 import { AuthService } from "./api/auth/auth.service";
 import { AuthController } from "./api/auth/auth.controller";
 import { JwtService } from "./common/services/jwt.service";
-import { TaskController } from "./api/task/task.controller";
-import { TaskService } from "./api/task/task.service";
 import { CollectionController } from "./api/collection/collection.controller";
 import { CollectionService } from "./api/collection/collection.service";
 import { OnRequestHooks } from "./common/hooks/on-request.hooks";
@@ -20,9 +18,6 @@ inversifyContainer.bind(DBConfig).toSelf();
 
 inversifyContainer.bind(AuthService).toSelf();
 inversifyContainer.bind(AuthController).toSelf();
-
-inversifyContainer.bind(TaskController).toSelf();
-inversifyContainer.bind(TaskService).toSelf();
 
 inversifyContainer.bind(CollectionController).toSelf();
 inversifyContainer.bind(CollectionService).toSelf();

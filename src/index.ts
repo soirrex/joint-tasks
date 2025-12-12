@@ -6,7 +6,6 @@ import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastifyCookie from "@fastify/cookie";
 import { inversifyContainer } from "./container";
-import { TaskController } from "./api/task/task.controller";
 import { DBConfig } from "./config/db.config";
 import { CollectionController } from "./api/collection/collection.controller";
 
@@ -57,11 +56,6 @@ fastify.register(fastifySwaggerUi, {
 const authController = inversifyContainer.get(AuthController);
 fastify.register(authController.registerRouters.bind(authController), {
   prefix: "/auth",
-});
-
-const taskController = inversifyContainer.get(TaskController);
-fastify.register(taskController.registerRouters.bind(taskController), {
-  prefix: "/tasks",
 });
 
 const collectionController = inversifyContainer.get(CollectionController);

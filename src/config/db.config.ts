@@ -1,7 +1,7 @@
 import { EnvConfig } from "./env.config";
 import { Sequelize } from "sequelize";
 import { inject, injectable } from "inversify";
-import { initDBModels } from "../models/init.modelts";
+import { initDBModels } from "../models/init.models";
 
 @injectable()
 export class DBConfig {
