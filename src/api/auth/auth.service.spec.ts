@@ -15,6 +15,7 @@ describe("AuthService", () => {
   const mockUser = {
     id: "1",
     email: "email@example.com",
+    name: "name",
   } as unknown as UserModel;
 
   const mockReplay = {
@@ -44,7 +45,7 @@ describe("AuthService", () => {
       mockUserRepository.findUserByEmail.mockResolvedValue(mockUser);
 
       expect(
-        service.register("email@example.com", "password", mockReplay as FastifyReply),
+        service.register("email@example.com", "name", "password", mockReplay as FastifyReply),
       ).rejects.toThrow(ConflictError);
 
       expect(mockUserRepository.createUser).not.toHaveBeenCalled();
@@ -56,12 +57,14 @@ describe("AuthService", () => {
 
       const result = await service.register(
         "email@example.com",
+        "name",
         "password",
         mockReplay as FastifyReply,
       );
 
       expect(mockUserRepository.createUser).toHaveBeenCalledWith(
         "email@example.com",
+        "name",
         expect.any(String),
       );
 

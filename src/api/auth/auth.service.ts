@@ -12,7 +12,7 @@ export class AuthService {
     @inject(JwtService) private jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string, reply: FastifyReply) {
+  async register(email: string, name: string, password: string, reply: FastifyReply) {
     const user = await this.userRepository.findUserByEmail(email);
 
     if (user) {
@@ -20,7 +20,7 @@ export class AuthService {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
-    const createUser = await this.userRepository.createUser(email, hashPassword);
+    const createUser = await this.userRepository.createUser(email, name, hashPassword);
 
     const token = this.jwtService.create(createUser.id);
 

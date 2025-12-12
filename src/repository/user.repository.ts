@@ -14,11 +14,12 @@ export class UserRepository {
     return user;
   }
 
-  async createUser(email: string, hashPassword: string): Promise<UserModel> {
+  async createUser(email: string, name: string, hashPassword: string): Promise<UserModel> {
     const user = await UserModel.create(
       {
         email: email,
         password: hashPassword,
+        name: name,
       },
       { raw: true },
     );

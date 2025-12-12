@@ -32,6 +32,7 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
+          name: "testName",
           password: "testPassword",
         })
         .expect(400);
@@ -43,6 +44,7 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
+          name: "testName",
           email: "test@example.com",
         })
         .expect(400);
@@ -50,11 +52,24 @@ describe("auth e2e test", () => {
       expect(response.body.message).toEqual("body must have required property 'password'");
     });
 
+    it("POST /auth/register - throw error 400 if the name field is missing", async () => {
+      const response = await request(fastify.server)
+        .post("/auth/register")
+        .send({
+          password: "testPassword",
+          email: "test@example.com",
+        })
+        .expect(400);
+
+      expect(response.body.message).toEqual("body must have required property 'name'");
+    });
+
     it("POST /auth/register - throw error 400 if email is invalid", async () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
           email: "invalidEmail",
+          name: "testName",
           password: "testPassword",
         })
         .expect(400);
@@ -67,6 +82,7 @@ describe("auth e2e test", () => {
         .post("/auth/register")
         .send({
           email: "test@example.com",
+          name: "testName",
           password: "123",
         })
         .expect(400);
@@ -79,6 +95,7 @@ describe("auth e2e test", () => {
         .post("/auth/register")
         .send({
           email: "test@example.com",
+          name: "testName",
           password: "a".repeat(51),
         })
         .expect(400);
@@ -86,11 +103,25 @@ describe("auth e2e test", () => {
       expect(response.body.message).toEqual("body/password must NOT have more than 50 characters");
     });
 
+    it("POST /auth/register - throw error 400 if the name is longer than 50 characters", async () => {
+      const response = await request(fastify.server)
+        .post("/auth/register")
+        .send({
+          email: "test@example.com",
+          name: "a".repeat(51),
+          password: "testPassword",
+        })
+        .expect(400);
+
+      expect(response.body.message).toEqual("body/name must NOT have more than 50 characters");
+    });
+
     it("POST /auth/register - should create new user", async () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
           email: "test@example.com",
+          name: "testName",
           password: "testPassword",
         })
         .expect(201);
@@ -104,6 +135,7 @@ describe("auth e2e test", () => {
         .post("/auth/register")
         .send({
           email: "test@example.com",
+          name: "testName",
           password: "testPassword",
         })
         .expect(409);

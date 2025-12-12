@@ -5,6 +5,7 @@ import { inject, injectable } from "inversify";
 interface AuthBody {
   email: string;
   password: string;
+  name: string;
 }
 
 @injectable()
@@ -21,10 +22,11 @@ export class AuthController {
           tags: ["auth"],
           body: {
             type: "object",
-            required: ["email", "password"],
+            required: ["email", "password", "name"],
             properties: {
               email: { type: "string", format: "email", maxLength: 50 },
               password: { type: "string", minLength: 6, maxLength: 50 },
+              name: { type: "string", maxLength: 50 },
             },
           },
           response: {
@@ -105,9 +107,9 @@ export class AuthController {
   }
 
   private async register(request: FastifyRequest<{ Body: AuthBody }>, reply: FastifyReply) {
-    const { email, password } = request.body;
+    const { email, password, name } = request.body;
 
-    const message = await this.authService.register(email, password, reply);
+    const message = await this.authService.register(email, name, password, reply);
     reply.code(201).send(message);
   }
 
