@@ -5,9 +5,8 @@ export class TaskModel extends Model {
   public collectionId!: number;
   public name!: string;
   public description!: string;
-  public deadline!: number;
   public priority!: "low" | "mid" | "high";
-  public type!: "created" | "in process" | "completed";
+  public type!: "new" | "in process" | "completed" | "canceled";
 
   readonly createdAt!: Date;
   readonly updatedAt!: Date;
@@ -37,21 +36,13 @@ export class TaskModel extends Model {
             len: [0, 500],
           },
         },
-        deadline: {
-          type: DataTypes.BIGINT,
-          allowNull: false,
-        },
         priority: {
-          type: DataTypes.ENUM({
-            values: ["low", "mid", "high"],
-          }),
+          type: DataTypes.ENUM("low", "mid", "high"),
           allowNull: false,
         },
         type: {
-          type: DataTypes.ENUM({
-            values: ["created", "in process", "completed"],
-          }),
-          defaultValue: "created",
+          type: DataTypes.ENUM("now", "in process", "completed", "canceled"),
+          defaultValue: "now",
           allowNull: false,
         },
       },
@@ -59,10 +50,6 @@ export class TaskModel extends Model {
         indexes: [
           {
             fields: ["collectionId"],
-            using: "BTREE",
-          },
-          {
-            fields: ["deadline"],
             using: "BTREE",
           },
           {

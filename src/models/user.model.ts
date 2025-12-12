@@ -2,6 +2,7 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 
 export class UserModel extends Model {
   public id!: string;
+  public name!: string;
   public email!: string;
   public password!: string;
 
@@ -15,6 +16,13 @@ export class UserModel extends Model {
           type: DataTypes.UUID,
           defaultValue: DataTypes.UUIDV4,
           primaryKey: true,
+        },
+        name: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          validate: {
+            len: [0, 50],
+          },
         },
         email: {
           type: DataTypes.STRING,

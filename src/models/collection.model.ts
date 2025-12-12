@@ -36,7 +36,7 @@ export class CollectionModel extends Model {
           },
         ],
         sequelize,
-        tableName: "containers",
+        tableName: "collections",
         timestamps: true,
       },
     );
