@@ -127,4 +127,42 @@ export class CollectionService {
       task: task,
     };
   }
+
+  async getTasksFromContainer(
+    userId: string,
+    collectionId: string,
+    limit: number,
+    page: number,
+    statuses: string[],
+    sort: string,
+  ) {
+    if (isNaN(parseInt(collectionId))) {
+      throw new BadRequestError("'collectionId' must be a number");
+    }
+
+    const collection = await this.collectionRepository.getCollectionAndUserRights(
+      userId,
+      Number(collectionId),
+    );
+
+    if (!collection) {
+      throw new NotFoundError("Collection not found");
+    } else if (collection.userRights!.userId !== userId && collection.creatorId !== userId) {
+      throw new ForbiddenError("You don't have rights to read tasks from this container");
+    }
+
+    const tasks = await this.collectionRepository.getTasksFromCollection(
+      Number(collectionId),
+      limit,
+      page,
+      statuses,
+      sort,
+    );
+
+    return {
+      tasks: tasks.tasks,
+      page: page,
+      totalPages: tasks.totalPages,
+    };
+  }
 }

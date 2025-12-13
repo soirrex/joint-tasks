@@ -3,6 +3,7 @@ import { CollectionModel } from "../models/collection.model";
 import { UserRightsModel } from "../models/user-rights.model";
 import { BadRequestError } from "../common/classes/error.class";
 import { TaskModel } from "../models/task.model";
+import { Op, Sequelize } from "sequelize";
 
 @injectable()
 export class CollectionRepository {
@@ -108,5 +109,44 @@ export class CollectionRepository {
     });
 
     return task.get({ plain: true });
+  }
+
+  async getTasksFromCollection(
+    collectionId: number,
+    limit: number,
+    page: number,
+    statuses: string[],
+    sort: string,
+  ): Promise<{ tasks: TaskModel[]; totalPages: number }> {
+    const offset = (page - 1) * limit;
+
+    const tasks = await TaskModel.findAndCountAll({
+      where: {
+        collectionId: collectionId,
+        status: {
+          [Op.in]: statuses,
+        },
+      },
+      order: [
+        [
+          Sequelize.literal(`CASE status
+                            WHEN 'new' THEN 1
+                            WHEN 'in_process' THEN 2
+                            WHEN 'completed' THEN 3
+                            WHEN 'canceled' THEN 4
+                            END`),
+          "DESC",
+        ],
+        [sort, "DESC"],
+      ],
+      limit: limit,
+      offset: offset,
+      raw: true,
+    });
+
+    return {
+      tasks: tasks.rows,
+      totalPages: Math.ceil(tasks.count / limit),
+    };
   }
 }

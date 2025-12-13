@@ -30,6 +30,14 @@ fastify.addHook("onError", (request: FastifyRequest, reply: FastifyReply, err) =
   }
 });
 
+fastify.decorateRequest("userId", null); // added from OnRequestHooks.isAuthHook
+
+declare module "fastify" {
+  interface FastifyRequest {
+    userId: string | null;
+  }
+}
+
 fastify.register(fastifyCookie);
 fastify.register(fastifySwagger, {
   openapi: {

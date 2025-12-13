@@ -1,19 +1,42 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inject, injectable } from "inversify";
 import { CollectionService } from "./collection.service";
 import { OnRequestHooks } from "../../common/hooks/on-request.hooks";
-import { AuthFastifyRequest } from "../../common/interfaces/auth-request.interfase";
 
-interface CreateCollectionBody {
-  name: string;
-}
+type CreateCollectionDto = {
+  Body: {
+    name: string;
+  };
+};
 
-interface AddUserToCollectionBody {
-  rightToCreate: boolean;
-  rightToEdit: boolean;
-  rightToDelete: boolean;
-  rightToChangeStatus: boolean;
-}
+type AddUserToCollectionDto = {
+  Params: { collectionId: string; userId: string };
+  Body: {
+    rightToCreate: boolean;
+    rightToEdit: boolean;
+    rightToDelete: boolean;
+    rightToChangeStatus: boolean;
+  };
+};
+
+type CreateTaskDto = {
+  Params: { collectionId: string };
+  Body: {
+    name: string;
+    description?: string;
+    priority: string;
+  };
+};
+
+type GetTasksDto = {
+  Params: { collectionId: string };
+  Querystring: {
+    limit: number;
+    page: number;
+    sort: "createdAt" | "updatedAt" | "priority";
+    statuses: ("new" | "in_process" | "completed" | "canceled")[];
+  };
+};
 
 @injectable()
 export class CollectionController {
@@ -23,7 +46,7 @@ export class CollectionController {
   ) {}
 
   async registerRouters(fastify: FastifyInstance) {
-    fastify.post<{ Body: CreateCollectionBody }>(
+    fastify.post<CreateCollectionDto>(
       "/",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
@@ -99,10 +122,7 @@ export class CollectionController {
       this.deleteCollectionById.bind(this),
     );
 
-    fastify.patch<{
-      Params: { collectionId: string; userId: string };
-      Body: AddUserToCollectionBody;
-    }>(
+    fastify.patch<AddUserToCollectionDto>(
       "/:collectionId/users/:userId",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
@@ -177,14 +197,7 @@ export class CollectionController {
       this.addUserToCollection.bind(this),
     );
 
-    fastify.post<{
-      Params: { collectionId: string };
-      Body: {
-        name: string;
-        description?: string;
-        priority: string;
-      };
-    }>(
+    fastify.post<CreateTaskDto>(
       "/:collectionId/tasks",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
@@ -240,10 +253,81 @@ export class CollectionController {
       },
       this.createTask.bind(this),
     );
+
+    fastify.get<GetTasksDto>(
+      "/:collectionId/tasks",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "get tasks from collection",
+          description: "get tasks from collections",
+          tags: ["task"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+            },
+            required: ["collectionId"],
+          },
+          querystring: {
+            type: "object",
+            properties: {
+              page: { type: "integer", minimum: 1, default: 1 },
+              limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+              sort: {
+                type: "string",
+                enum: ["createdAt", "updatedAt", "priority"],
+                default: "priority",
+              },
+              statuses: {
+                description: "get tasks with this status",
+                type: "array",
+                items: {
+                  type: "string",
+                  enum: ["new", "in_process", "completed", "canceled"],
+                },
+                default: ["new", "in_process", "completed", "canceled"],
+              },
+            },
+          },
+          response: {
+            200: {
+              description: "Get tasks",
+              type: "object",
+              properties: {
+                page: { type: "number" },
+                totalPages: { type: "number" },
+                tasks: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      collectionId: { type: "string" },
+                      name: { type: "string" },
+                      description: { type: "string" },
+                      priority: { type: "string" },
+                      status: { type: "string" },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.getTasksFromContainer.bind(this),
+    );
   }
 
   private async createCollection(
-    request: AuthFastifyRequest & { body: CreateCollectionBody },
+    request: FastifyRequest<CreateCollectionDto>,
     reply: FastifyReply,
   ) {
     const { name } = request.body;
@@ -255,7 +339,7 @@ export class CollectionController {
   }
 
   private async deleteCollectionById(
-    request: AuthFastifyRequest & { params: { collectionId: string } },
+    request: FastifyRequest & { params: { collectionId: string } },
     reply: FastifyReply,
   ) {
     const collectionId = request.params.collectionId;
@@ -267,10 +351,7 @@ export class CollectionController {
   }
 
   private async addUserToCollection(
-    request: AuthFastifyRequest & {
-      params: { collectionId: string; userId: string };
-      body: AddUserToCollectionBody;
-    },
+    request: FastifyRequest<AddUserToCollectionDto>,
     reply: FastifyReply,
   ) {
     const collectionId = request.params.collectionId;
@@ -291,19 +372,7 @@ export class CollectionController {
     reply.code(200).send(message);
   }
 
-  async createTask(
-    request: AuthFastifyRequest & {
-      params: {
-        collectionId: string;
-      };
-      body: {
-        name: string;
-        description?: string;
-        priority: string;
-      };
-    },
-    reply: FastifyReply,
-  ) {
+  async createTask(request: FastifyRequest<CreateTaskDto>, reply: FastifyReply) {
     const userId = request.userId;
     const collectionId = request.params.collectionId;
     const { name, priority, description } = request.body;
@@ -317,5 +386,22 @@ export class CollectionController {
     );
 
     reply.code(201).send(message);
+  }
+
+  async getTasksFromContainer(request: FastifyRequest<GetTasksDto>, reply: FastifyReply) {
+    const userId = request.userId;
+    const collectionId = request.params.collectionId;
+    const { limit, page, statuses, sort } = request.query;
+
+    const message = await this.collectionService.getTasksFromContainer(
+      userId!,
+      collectionId,
+      limit,
+      page,
+      statuses,
+      sort,
+    );
+
+    reply.code(200).send(message);
   }
 }
