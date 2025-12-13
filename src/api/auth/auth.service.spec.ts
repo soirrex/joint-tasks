@@ -3,7 +3,7 @@ import { UserRepository } from "../../repository/user.repository";
 import { JwtService } from "../../common/services/jwt.service";
 import { UserModel } from "../../models/user.model";
 import { FastifyReply } from "fastify";
-import { ConflictError, ForbiddeError, NotFoundError } from "../../common/classes/error.class";
+import { ConflictError, ForbiddenError, NotFoundError } from "../../common/classes/error.class";
 import bcrypt from "bcrypt";
 
 describe("AuthService", () => {
@@ -89,7 +89,7 @@ describe("AuthService", () => {
 
       expect(
         service.login("email@example.com", "invalidPassword", mockReplay as FastifyReply),
-      ).rejects.toThrow(ForbiddeError);
+      ).rejects.toThrow(ForbiddenError);
     });
 
     it("should login successfully", async () => {

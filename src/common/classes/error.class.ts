@@ -21,7 +21,7 @@ export class UnauthorizedError extends BaseHttpError {
   }
 }
 
-export class ForbiddeError extends BaseHttpError {
+export class ForbiddenError extends BaseHttpError {
   constructor(message: string) {
     super(message, 403);
   }
@@ -36,5 +36,11 @@ export class NotFoundError extends BaseHttpError {
 export class ConflictError extends BaseHttpError {
   constructor(message: string) {
     super(message, 409);
+  }
+}
+
+export class InternalServerError extends BaseHttpError {
+  constructor(message: string) {
+    super(message, 500);
   }
 }
