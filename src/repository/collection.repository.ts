@@ -1,7 +1,8 @@
 import { injectable } from "inversify";
 import { CollectionModel } from "../models/collection.model";
 import { UserRightsModel } from "../models/user-rights.model";
-import { InternalServerError } from "../common/classes/error.class";
+import { BadRequestError } from "../common/classes/error.class";
+import { TaskModel } from "../models/task.model";
 
 @injectable()
 export class CollectionRepository {
@@ -87,5 +88,25 @@ export class CollectionRepository {
     });
 
     return collection as CollectionModel & { userRights: UserRightsModel | null };
+  }
+
+  async createTaskInCollection(
+    collectionId: number,
+    name: string,
+    priority: string,
+    description?: string,
+  ) {
+    if (priority !== "low" && priority !== "mid" && priority !== "high") {
+      throw new BadRequestError("priority must be one of the following values: low, mid, high");
+    }
+
+    const task = await TaskModel.create({
+      collectionId: collectionId,
+      name: name,
+      priority: priority,
+      description,
+    });
+
+    return task.get({ plain: true });
   }
 }

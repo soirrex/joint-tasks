@@ -20,7 +20,7 @@ export class CollectionController {
   constructor(
     @inject(CollectionService) private collectionService: CollectionService,
     @inject(OnRequestHooks) private onRequestHooks: OnRequestHooks,
-  ) { }
+  ) {}
 
   async registerRouters(fastify: FastifyInstance) {
     fastify.post<{ Body: CreateCollectionBody }>(
@@ -176,6 +176,70 @@ export class CollectionController {
       },
       this.addUserToCollection.bind(this),
     );
+
+    fastify.post<{
+      Params: { collectionId: string };
+      Body: {
+        name: string;
+        description?: string;
+        priority: string;
+      };
+    }>(
+      "/:collectionId/tasks",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "create a new task in the collection",
+          description:
+            "create a new task in the collection. The deadline field must be in the unixtime seconds forma",
+          tags: ["task"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+            },
+            required: ["collectionId"],
+          },
+          body: {
+            type: "object",
+            properties: {
+              name: { type: "string", maxLength: 50 },
+              priority: {
+                type: "string",
+                enum: ["low", "mid", "high"],
+              },
+              description: { type: "string", maxLength: 500 },
+            },
+            required: ["name", "priority"],
+          },
+          response: {
+            201: {
+              description: "Task created successfully",
+              type: "object",
+              properties: {
+                message: { type: "string" },
+                task: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    name: { type: "string" },
+                    priority: { type: "string" },
+                    description: { type: "string" },
+                    createdAt: { type: "string", format: "date-time" },
+                    updatedAt: { type: "string", format: "date-time" },
+                  },
+                },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.createTask.bind(this),
+    );
   }
 
   private async createCollection(
@@ -225,5 +289,33 @@ export class CollectionController {
     );
 
     reply.code(200).send(message);
+  }
+
+  async createTask(
+    request: AuthFastifyRequest & {
+      params: {
+        collectionId: string;
+      };
+      body: {
+        name: string;
+        description?: string;
+        priority: string;
+      };
+    },
+    reply: FastifyReply,
+  ) {
+    const userId = request.userId;
+    const collectionId = request.params.collectionId;
+    const { name, priority, description } = request.body;
+
+    const message = await this.collectionService.createTask(
+      userId!,
+      collectionId,
+      name,
+      priority,
+      description,
+    );
+
+    reply.code(201).send(message);
   }
 }

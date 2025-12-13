@@ -90,4 +90,41 @@ export class CollectionService {
       },
     };
   }
+
+  async createTask(
+    userId: string,
+    collectionId: string,
+    name: string,
+    priority: string,
+    description?: string,
+  ) {
+    if (isNaN(parseInt(collectionId))) {
+      throw new BadRequestError("'collectionId' must be a number");
+    }
+
+    const collection = await this.collectionRepository.getCollectionAndUserRights(
+      userId,
+      Number(collectionId),
+    );
+
+    if (!collection) {
+      throw new NotFoundError("Collection not found");
+    } else if (!collection.userRights) {
+      throw new ForbiddenError("You don't have rights to create a new task");
+    } else if (collection.userRights.rightToCreate !== true) {
+      throw new ForbiddenError("You don't have rights to create a new task");
+    }
+
+    const task = await this.collectionRepository.createTaskInCollection(
+      Number(collectionId),
+      name,
+      priority,
+      description,
+    );
+
+    return {
+      message: "Task created successfully",
+      task: task,
+    };
+  }
 }
