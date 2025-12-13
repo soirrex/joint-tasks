@@ -6,7 +6,7 @@ export class TaskModel extends Model {
   public name!: string;
   public description!: string;
   public priority!: "low" | "mid" | "high";
-  public type!: "new" | "in process" | "completed" | "canceled";
+  public status!: "new" | "in_process" | "completed" | "canceled";
 
   readonly createdAt!: Date;
   readonly updatedAt!: Date;
@@ -40,9 +40,9 @@ export class TaskModel extends Model {
           type: DataTypes.ENUM("low", "mid", "high"),
           allowNull: false,
         },
-        type: {
-          type: DataTypes.ENUM("now", "in process", "completed", "canceled"),
-          defaultValue: "now",
+        status: {
+          type: DataTypes.ENUM("new", "in_process", "completed", "canceled"),
+          defaultValue: "new",
           allowNull: false,
         },
       },
@@ -57,7 +57,15 @@ export class TaskModel extends Model {
             using: "BTREE",
           },
           {
-            fields: ["type"],
+            fields: ["status"],
+            using: "BTREE",
+          },
+          {
+            fields: ["createdAt"],
+            using: "BTREE",
+          },
+          {
+            fields: ["updatedAt"],
             using: "BTREE",
           },
         ],
