@@ -47,5 +47,6 @@ export async function initDBModels(sequelize: Sequelize) {
   CollectionModel.hasMany(UserRightsModel, {
     foreignKey: "collectionId",
     sourceKey: "id",
+    as: "userRights",
   });
 }

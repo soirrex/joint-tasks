@@ -4,16 +4,27 @@ import { CollectionService } from "./collection.service";
 import { OnRequestHooks } from "../../common/hooks/on-request.hooks";
 import { AuthFastifyRequest } from "../../common/interfaces/auth-request.interfase";
 
+interface CreateCollectionBody {
+  name: string;
+}
+
+interface AddUserToCollectionBody {
+  rightToCreate: boolean;
+  rightToEdit: boolean;
+  rightToDelete: boolean;
+  rightToChangeStatus: boolean;
+}
+
 @injectable()
 export class CollectionController {
   constructor(
     @inject(CollectionService) private collectionService: CollectionService,
     @inject(OnRequestHooks) private onRequestHooks: OnRequestHooks,
-  ) {}
+  ) { }
 
   async registerRouters(fastify: FastifyInstance) {
-    fastify.post<{ Body: { name: string } }>(
-      "/create",
+    fastify.post<{ Body: CreateCollectionBody }>(
+      "/",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
         schema: {
@@ -22,6 +33,7 @@ export class CollectionController {
           tags: ["collection"],
           body: {
             type: "object",
+            required: ["name"],
             properties: {
               name: { type: "string", maxLength: 50 },
             },
@@ -51,7 +63,7 @@ export class CollectionController {
     );
 
     fastify.delete<{ Params: { collectionId: string } }>(
-      "/delete/:collectionId",
+      "/:collectionId",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
         schema: {
@@ -86,10 +98,88 @@ export class CollectionController {
       },
       this.deleteCollectionById.bind(this),
     );
+
+    fastify.patch<{
+      Params: { collectionId: string; userId: string };
+      Body: AddUserToCollectionBody;
+    }>(
+      "/:collectionId/users/:userId",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "set user rights in the collection",
+          description:
+            "set user rights in the collection. You can change user rights in the collection. If the user does not exist in the collection, they will be added",
+          tags: ["collection"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+              userId: { type: "string", description: "user id" },
+            },
+            required: ["collectionId", "userId"],
+          },
+          body: {
+            type: "object",
+            properties: {
+              rightToCreate: {
+                type: "boolean",
+                description: "rights to create new tasks",
+                default: false,
+              },
+              rightToEdit: {
+                type: "boolean",
+                description: "rights to edit tasks",
+                default: false,
+              },
+              rightToDelete: {
+                type: "boolean",
+                description: "rights to delete tasks",
+                default: false,
+              },
+              rightToChangeStatus: {
+                type: "boolean",
+                description: "rights to change task status",
+                default: false,
+              },
+            },
+          },
+          response: {
+            200: {
+              description: "Set user rights successfully",
+              type: "object",
+              properties: {
+                message: { type: "string" },
+                user: {
+                  type: "object",
+                  properties: {
+                    userId: { type: "string" },
+                    rights: {
+                      type: "object",
+                      properties: {
+                        create: { type: "boolean" },
+                        edit: { type: "boolean" },
+                        delete: { type: "boolean" },
+                        changeStatus: { type: "boolean" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.addUserToCollection.bind(this),
+    );
   }
 
   private async createCollection(
-    request: AuthFastifyRequest & { body: { name: string } },
+    request: AuthFastifyRequest & { body: CreateCollectionBody },
     reply: FastifyReply,
   ) {
     const { name } = request.body;
@@ -110,5 +200,30 @@ export class CollectionController {
     const message = await this.collectionService.deleteCollectionById(userId!, collectionId);
 
     reply.code(201).send(message);
+  }
+
+  private async addUserToCollection(
+    request: AuthFastifyRequest & {
+      params: { collectionId: string; userId: string };
+      body: AddUserToCollectionBody;
+    },
+    reply: FastifyReply,
+  ) {
+    const collectionId = request.params.collectionId;
+    const userId = request.params.userId;
+    const requestUserId = request.userId;
+    const { rightToCreate, rightToEdit, rightToDelete, rightToChangeStatus } = request.body;
+
+    const message = await this.collectionService.addUserToCollection(
+      requestUserId!,
+      userId!,
+      collectionId,
+      rightToCreate,
+      rightToEdit,
+      rightToDelete,
+      rightToChangeStatus,
+    );
+
+    reply.code(200).send(message);
   }
 }

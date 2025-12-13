@@ -14,6 +14,17 @@ export class UserRepository {
     return user;
   }
 
+  async findUserById(userId: string): Promise<UserModel | null> {
+    const user = await UserModel.findOne({
+      where: {
+        id: userId,
+      },
+      raw: true,
+    });
+
+    return user;
+  }
+
   async createUser(email: string, name: string, hashPassword: string): Promise<UserModel> {
     const user = await UserModel.create(
       {
