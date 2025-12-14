@@ -68,6 +68,15 @@ export class CollectionRepository {
     return record.get({ plain: true });
   }
 
+  async deleteUserFromCollection(userId: string, collectionId: number): Promise<void> {
+    await UserRightsModel.destroy({
+      where: {
+        userId: userId,
+        collectionId: collectionId,
+      },
+    });
+  }
+
   async getCollectionAndUserRights(
     userId: string,
     collectionId: number,

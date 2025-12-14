@@ -9,7 +9,7 @@ import {
 
 @injectable()
 export class CollectionService {
-  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) {}
+  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) { }
 
   async createCollection(userId: string, name: string) {
     const collection = await this.collectionRepository.createCollection(userId, name);
@@ -65,7 +65,7 @@ export class CollectionService {
     if (collection.creatorId !== requestUserId) {
       throw new ForbiddenError("Only the creator can add users to this collection");
     } else if (collection.creatorId === addUserId) {
-      throw new ConflictError("You cannot set rights for yourself");
+      throw new BadRequestError("You cannot set rights for yourself");
     }
 
     const addUser = await this.collectionRepository.setUserRightsInCollection(
@@ -88,6 +88,36 @@ export class CollectionService {
           changeStatus: addUser.rightToChangeStatus,
         },
       },
+    };
+  }
+
+  async deleteUserFromCollection(
+    requestUserId: string,
+    deleteUserId: string,
+    collectionId: string,
+  ) {
+    if (isNaN(parseInt(collectionId))) {
+      throw new BadRequestError("'collectionId' must be a number");
+    }
+
+    const collection = await this.collectionRepository.getCollectionById(Number(collectionId));
+
+    if (!collection) {
+      throw new NotFoundError("Collection not found");
+    }
+
+    if (collection.creatorId !== requestUserId) {
+      throw new ForbiddenError("Only the creator can remove users froma this collection");
+    } else if (collection.creatorId === deleteUserId) {
+      throw new BadRequestError(
+        "You cannot remove yourself from this collection, you are the creator of this collection",
+      );
+    }
+
+    await this.collectionRepository.deleteUserFromCollection(deleteUserId, Number(collectionId));
+
+    return {
+      message: "User successfully removed from collection",
     };
   }
 

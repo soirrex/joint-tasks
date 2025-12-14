@@ -19,6 +19,10 @@ type AddUserToCollectionDto = {
   };
 };
 
+type DeleteUserFromCollectionDto = {
+  Params: { collectionId: string; userId: string };
+};
+
 type CreateTaskDto = {
   Params: { collectionId: string };
   Body: {
@@ -43,7 +47,7 @@ export class CollectionController {
   constructor(
     @inject(CollectionService) private collectionService: CollectionService,
     @inject(OnRequestHooks) private onRequestHooks: OnRequestHooks,
-  ) {}
+  ) { }
 
   async registerRouters(fastify: FastifyInstance) {
     fastify.post<CreateCollectionDto>(
@@ -195,6 +199,40 @@ export class CollectionController {
         },
       },
       this.addUserToCollection.bind(this),
+    );
+
+    fastify.delete<DeleteUserFromCollectionDto>(
+      "/:collectionId/users/:userId",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "remove user from collection",
+          description: "remove user from collection",
+          tags: ["collection"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+              userId: { type: "string", description: "user id" },
+            },
+            required: ["collectionId", "userId"],
+          },
+          response: {
+            200: {
+              description: "User successfully removed from collection",
+              type: "object",
+              properties: {
+                message: { type: "string" },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.deleteUserFromCollection.bind(this),
     );
 
     fastify.post<CreateTaskDto>(
@@ -367,6 +405,23 @@ export class CollectionController {
       rightToEdit,
       rightToDelete,
       rightToChangeStatus,
+    );
+
+    reply.code(200).send(message);
+  }
+
+  private async deleteUserFromCollection(
+    request: FastifyRequest<DeleteUserFromCollectionDto>,
+    reply: FastifyReply,
+  ) {
+    const collectionId = request.params.collectionId;
+    const userId = request.params.userId;
+    const requestUserId = request.userId;
+
+    const message = await this.collectionService.deleteUserFromCollection(
+      requestUserId!,
+      userId!,
+      collectionId,
     );
 
     reply.code(200).send(message);
