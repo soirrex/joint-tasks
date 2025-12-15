@@ -49,6 +49,10 @@ type GetTasksDto = {
   };
 };
 
+type DeleteTaskDto = {
+  Params: { collectionId: string; taskId: string };
+};
+
 @injectable()
 export class CollectionController {
   constructor(
@@ -320,8 +324,7 @@ export class CollectionController {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
         schema: {
           summary: "create a new task in the collection",
-          description:
-            "create a new task in the collection. The deadline field must be in the unixtime seconds forma",
+          description: "create a new task in the collection",
           tags: ["task"],
           params: {
             type: "object",
@@ -439,7 +442,41 @@ export class CollectionController {
           },
         },
       },
-      this.getTasksFromContainer.bind(this),
+      this.getTasksFromCollection.bind(this),
+    );
+
+    fastify.delete<DeleteTaskDto>(
+      "/:collectionId/tasks/:taskId",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "delete task from collection",
+          description: "delete task from collection",
+          tags: ["task"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+              taskId: { type: "string", description: "task id" },
+            },
+            required: ["collectionId", "taskId"],
+          },
+          response: {
+            200: {
+              description: "Task deleted successfully",
+              type: "object",
+              properties: {
+                message: { type: "string" },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.deleteTaskFromCollection.bind(this),
     );
   }
 
@@ -534,18 +571,32 @@ export class CollectionController {
     reply.code(201).send(message);
   }
 
-  async getTasksFromContainer(request: FastifyRequest<GetTasksDto>, reply: FastifyReply) {
+  async getTasksFromCollection(request: FastifyRequest<GetTasksDto>, reply: FastifyReply) {
     const userId = request.userId;
     const collectionId = request.params.collectionId;
     const { limit, page, statuses, sort } = request.query;
 
-    const message = await this.collectionService.getTasksFromContainer(
+    const message = await this.collectionService.getTasksFromCollection(
       userId!,
       collectionId,
       limit,
       page,
       statuses,
       sort,
+    );
+
+    reply.code(200).send(message);
+  }
+
+  async deleteTaskFromCollection(request: FastifyRequest<DeleteTaskDto>, reply: FastifyReply) {
+    const userId = request.userId;
+    const collectionId = request.params.collectionId;
+    const taskId = request.params.taskId;
+
+    const message = await this.collectionService.deleteTaskFromCollection(
+      userId!,
+      collectionId,
+      taskId,
     );
 
     reply.code(200).send(message);

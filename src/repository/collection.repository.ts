@@ -207,4 +207,13 @@ export class CollectionRepository {
       totalPages: Math.ceil(tasks.count / limit),
     };
   }
+
+  async deleteTaskFromCollection(collectionId: number, taskId: number): Promise<void> {
+    await TaskModel.destroy({
+      where: {
+        collectionId: collectionId,
+        id: taskId,
+      },
+    });
+  }
 }

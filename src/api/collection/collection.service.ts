@@ -163,7 +163,7 @@ export class CollectionService {
     };
   }
 
-  async getTasksFromContainer(
+  async getTasksFromCollection(
     userId: string,
     collectionId: string,
     limit: number,
@@ -198,6 +198,43 @@ export class CollectionService {
       tasks: tasks.tasks,
       page: page,
       totalPages: tasks.totalPages,
+    };
+  }
+
+  async deleteTaskFromCollection(userId: string, collectionId: string, taskId: string) {
+    if (isNaN(parseInt(collectionId))) {
+      throw new BadRequestError("'collectionId' must be a number");
+    } else if (isNaN(parseInt(taskId))) {
+      throw new BadRequestError("'taskId' must be a number");
+    }
+
+    const collection = await this.collectionRepository.getCollectionAndUserRights(
+      userId,
+      Number(collectionId),
+    );
+
+    if (!collection) {
+      throw new NotFoundError("Collection not found");
+    } else if (
+      collection.userRights!.userId !== userId &&
+      collection.userRights!.rightToDelete !== false &&
+      collection.creatorId !== userId
+    ) {
+      throw new ForbiddenError("You don't have rights to read tasks from this container");
+    }
+
+    if (!collection) {
+      throw new NotFoundError("Collection not found");
+    } else if (!collection.userRights) {
+      throw new ForbiddenError("You don't have rights to delete tasks from this container");
+    } else if (collection.userRights.rightToDelete !== true && collection.creatorId !== userId) {
+      throw new ForbiddenError("You don't have rights to delete tasks from this container");
+    }
+
+    await this.collectionRepository.deleteTaskFromCollection(Number(collectionId), Number(taskId));
+
+    return {
+      message: "Task deleted successfully",
     };
   }
 }
