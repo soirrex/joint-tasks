@@ -9,6 +9,13 @@ type CreateCollectionDto = {
   };
 };
 
+type GetUserCollectionsDto = {
+  Querystring: {
+    limit: number;
+    page: number;
+  };
+};
+
 type AddUserToCollectionDto = {
   Params: { collectionId: string; userId: string };
   Body: {
@@ -47,7 +54,7 @@ export class CollectionController {
   constructor(
     @inject(CollectionService) private collectionService: CollectionService,
     @inject(OnRequestHooks) private onRequestHooks: OnRequestHooks,
-  ) { }
+  ) {}
 
   async registerRouters(fastify: FastifyInstance) {
     fastify.post<CreateCollectionDto>(
@@ -87,6 +94,78 @@ export class CollectionController {
         },
       },
       this.createCollection.bind(this),
+    );
+
+    fastify.get<GetUserCollectionsDto>(
+      "/",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "get user collections",
+          description: "get user collections in which he is creator and have rights",
+          tags: ["collection"],
+          querystring: {
+            type: "object",
+            properties: {
+              page: { type: "integer", minimum: 1, default: 1 },
+              limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+            },
+          },
+          response: {
+            200: {
+              description: "get user collections",
+              type: "object",
+              properties: {
+                page: { type: "number" },
+                totalPages: { type: "number" },
+                collections: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", description: "collection id" },
+                      creatorId: { type: "string" },
+                      isCreator: {
+                        type: "boolean",
+                        description: "if the user is creator of this collection",
+                      },
+                      name: { type: "string" },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                      userRights: {
+                        type: "object",
+                        properties: {
+                          rightToCreate: {
+                            type: "boolean",
+                            description: "rights to create new tasks",
+                          },
+                          rightToEdit: {
+                            type: "boolean",
+                            description: "rights to edit tasks",
+                          },
+                          rightToDelete: {
+                            type: "boolean",
+                            description: "rights to delete tasks",
+                          },
+                          rightToChangeStatus: {
+                            type: "boolean",
+                            description: "rights to change task status",
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              401: {
+                description: "Unauthorized",
+                $ref: "ErrorResponseSchema",
+              },
+            },
+          },
+        },
+      },
+      this.getUserCollections.bind(this),
     );
 
     fastify.delete<{ Params: { collectionId: string } }>(
@@ -374,6 +453,18 @@ export class CollectionController {
     const message = await this.collectionService.createCollection(userId!, name);
 
     reply.code(201).send(message);
+  }
+
+  private async getUserCollections(
+    request: FastifyRequest<GetUserCollectionsDto>,
+    reply: FastifyReply,
+  ) {
+    const userId = request.userId;
+    const { limit, page } = request.query;
+
+    const message = await this.collectionService.getUserCollections(userId!, limit, page);
+
+    reply.code(200).send(message);
   }
 
   private async deleteCollectionById(

@@ -1,15 +1,10 @@
 import { inject, injectable } from "inversify";
 import { CollectionRepository } from "../../repository/collection.repository";
-import {
-  BadRequestError,
-  ConflictError,
-  ForbiddenError,
-  NotFoundError,
-} from "../../common/classes/error.class";
+import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/classes/error.class";
 
 @injectable()
 export class CollectionService {
-  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) { }
+  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) {}
 
   async createCollection(userId: string, name: string) {
     const collection = await this.collectionRepository.createCollection(userId, name);
@@ -18,6 +13,16 @@ export class CollectionService {
       collection: {
         id: collection.id,
       },
+    };
+  }
+
+  async getUserCollections(userId: string, limit: number, page: number) {
+    const collections = await this.collectionRepository.getUserCollections(userId, limit, page);
+
+    return {
+      collections: collections.collections,
+      page: page,
+      totalPages: collections.totalPages,
     };
   }
 

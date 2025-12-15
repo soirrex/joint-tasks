@@ -3,7 +3,7 @@ import { CollectionModel } from "../models/collection.model";
 import { UserRightsModel } from "../models/user-rights.model";
 import { BadRequestError } from "../common/classes/error.class";
 import { TaskModel } from "../models/task.model";
-import { Op, Sequelize } from "sequelize";
+import { literal, Op, Sequelize } from "sequelize";
 
 @injectable()
 export class CollectionRepository {
@@ -14,6 +14,55 @@ export class CollectionRepository {
     });
 
     return container.get({ plain: true });
+  }
+
+  async getUserCollections(
+    userId: string,
+    limit: number,
+    page: number,
+  ): Promise<{
+    collections: (CollectionModel & { userRights: UserRightsModel })[];
+    totalPages: number;
+  }> {
+    const offset = (page - 1) * limit;
+
+    const collections = await CollectionModel.findAndCountAll({
+      attributes: [
+        "id",
+        "name",
+        "createdAt",
+        "updatedAt",
+        [literal(`CASE WHEN "creatorId" = '${userId}' THEN true ELSE false END`), "isCreator"],
+      ],
+      include: [
+        {
+          model: UserRightsModel,
+          as: "userRights",
+          required: false,
+          where: {
+            userId: userId,
+          },
+          attributes: ["rightToCreate", "rightToEdit", "rightToDelete", "rightToChangeStatus"],
+        },
+      ],
+      where: {
+        [Op.or]: [{ creatorId: userId }, { "$userRights.userId$": userId }],
+      },
+      order: [
+        [literal(`"creatorId" = '${userId}'`), "DESC"],
+        ["createdAt", "DESC"],
+      ],
+      limit,
+      offset,
+      subQuery: false,
+      nest: true,
+      raw: true,
+    });
+
+    return {
+      collections: collections.rows as (CollectionModel & { userRights: UserRightsModel })[],
+      totalPages: Math.ceil(collections.count / limit),
+    };
   }
 
   async getCollectionById(id: number): Promise<CollectionModel | null> {
