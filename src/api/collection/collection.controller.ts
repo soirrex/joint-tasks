@@ -16,7 +16,7 @@ type GetUserCollectionsDto = {
   };
 };
 
-type AddUserToCollectionDto = {
+type SetUserRightsInCollectionDto = {
   Params: { collectionId: string; userId: string };
   Body: {
     rightToCreate: boolean;
@@ -225,7 +225,7 @@ export class CollectionController {
       this.deleteCollectionById.bind(this),
     );
 
-    fastify.patch<AddUserToCollectionDto>(
+    fastify.patch<SetUserRightsInCollectionDto>(
       "/:collectionId/users/:userId",
       {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
@@ -297,7 +297,7 @@ export class CollectionController {
           },
         },
       },
-      this.addUserToCollection.bind(this),
+      this.addUserOrSetUserRightsInCollection.bind(this),
     );
 
     fastify.delete<DeleteUserFromCollectionDto>(
@@ -643,8 +643,8 @@ export class CollectionController {
     reply.code(201).send(message);
   }
 
-  private async addUserToCollection(
-    request: FastifyRequest<AddUserToCollectionDto>,
+  private async addUserOrSetUserRightsInCollection(
+    request: FastifyRequest<SetUserRightsInCollectionDto>,
     reply: FastifyReply,
   ) {
     const collectionId = request.params.collectionId;
@@ -652,7 +652,7 @@ export class CollectionController {
     const requestUserId = request.userId;
     const { rightToCreate, rightToEdit, rightToDelete, rightToChangeStatus } = request.body;
 
-    const message = await this.collectionService.addUserToCollection(
+    const message = await this.collectionService.addUserOrSetUserRightsInCollection(
       requestUserId!,
       userId!,
       collectionId,

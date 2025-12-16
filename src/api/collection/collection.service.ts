@@ -53,7 +53,7 @@ export class CollectionService {
     };
   }
 
-  async addUserToCollection(
+  async addUserOrSetUserRightsInCollection(
     requestUserId: string,
     addUserId: string,
     collectionId: string,
