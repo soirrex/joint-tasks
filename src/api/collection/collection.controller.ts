@@ -53,6 +53,22 @@ type DeleteTaskDto = {
   Params: { collectionId: string; taskId: string };
 };
 
+type EditTaskDto = {
+  Params: { collectionId: string; taskId: string };
+  Body: {
+    name: string;
+    description?: string;
+    priority: string;
+  };
+};
+
+type ChangeTaskStatusDto = {
+  Params: { collectionId: string; taskId: string };
+  Body: {
+    status: "new" | "in_process" | "completed" | "canceled";
+  };
+};
+
 @injectable()
 export class CollectionController {
   constructor(
@@ -478,6 +494,117 @@ export class CollectionController {
       },
       this.deleteTaskFromCollection.bind(this),
     );
+
+    fastify.put<EditTaskDto>(
+      "/:collectionId/tasks/:taskId",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "edit task from",
+          description: "edit task from collection",
+          tags: ["task"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+              taskId: { type: "string", description: "task id" },
+            },
+            required: ["collectionId", "taskId"],
+          },
+          body: {
+            type: "object",
+            properties: {
+              name: { type: "string", maxLength: 50 },
+              priority: {
+                type: "string",
+                enum: ["low", "mid", "high"],
+              },
+              description: { type: "string", maxLength: 500 },
+            },
+            required: ["name", "priority"],
+          },
+          response: {
+            200: {
+              description: "Task edited successfully",
+              type: "object",
+              properties: {
+                message: { type: "string" },
+                task: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    name: { type: "string" },
+                    priority: { type: "string" },
+                    status: { type: "string" },
+                    description: { type: "string" },
+                    createdAt: { type: "string", format: "date-time" },
+                    updatedAt: { type: "string", format: "date-time" },
+                  },
+                },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.editTask.bind(this),
+    );
+
+    fastify.patch<ChangeTaskStatusDto>(
+      "/:collectionId/tasks/:taskId/status",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "change task status",
+          description: "change task status",
+          tags: ["task"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+              taskId: { type: "string", description: "task id" },
+            },
+            required: ["collectionId", "taskId"],
+          },
+          body: {
+            type: "object",
+            properties: {
+              status: { type: "string", enum: ["new", "in_process", "completed", "canceled"] },
+            },
+            required: ["status"],
+          },
+          response: {
+            200: {
+              description: "Task status changed successfully",
+              type: "object",
+              properties: {
+                message: { type: "string" },
+                task: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    name: { type: "string" },
+                    priority: { type: "string" },
+                    status: { type: "string" },
+                    description: { type: "string" },
+                    createdAt: { type: "string", format: "date-time" },
+                    updatedAt: { type: "string", format: "date-time" },
+                  },
+                },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.changeTaskStatus.bind(this),
+    );
   }
 
   private async createCollection(
@@ -597,6 +724,41 @@ export class CollectionController {
       userId!,
       collectionId,
       taskId,
+    );
+
+    reply.code(200).send(message);
+  }
+
+  async editTask(request: FastifyRequest<EditTaskDto>, reply: FastifyReply) {
+    const userId = request.userId;
+    const collectionId = request.params.collectionId;
+    const taskId = request.params.taskId;
+
+    const { name, priority, description } = request.body;
+
+    const message = await this.collectionService.editTask(
+      userId!,
+      collectionId,
+      taskId,
+      name,
+      priority,
+      description,
+    );
+
+    reply.code(200).send(message);
+  }
+
+  async changeTaskStatus(request: FastifyRequest<ChangeTaskStatusDto>, reply: FastifyReply) {
+    const userId = request.userId;
+    const collectionId = request.params.collectionId;
+    const taskId = request.params.taskId;
+    const { status } = request.body;
+
+    const message = await this.collectionService.changeTaskStatus(
+      userId!,
+      collectionId,
+      taskId,
+      status,
     );
 
     reply.code(200).send(message);

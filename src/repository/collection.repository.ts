@@ -216,4 +216,53 @@ export class CollectionRepository {
       },
     });
   }
+
+  async editTask(
+    collectionId: number,
+    taskId: number,
+    name: string,
+    priority: string,
+    description?: string,
+  ): Promise<TaskModel | null> {
+    if (priority !== "low" && priority !== "mid" && priority !== "high") {
+      throw new BadRequestError("priority must be one of the following values: low, mid, high");
+    }
+
+    const [count, rows] = await TaskModel.update(
+      { name: name, priority: priority, description: description },
+      {
+        where: { id: taskId, collectionId: collectionId },
+        returning: true,
+      },
+    );
+
+    return count > 0 ? (rows[0] ?? null) : null;
+  }
+
+  async changeTaskStatus(
+    collectionId: number,
+    taskId: number,
+    newStatus: string,
+  ): Promise<TaskModel | null> {
+    if (
+      newStatus !== "new" &&
+      newStatus !== "in_process" &&
+      newStatus !== "completed" &&
+      newStatus !== "canceled"
+    ) {
+      throw new BadRequestError(
+        "status must be one of the following values: new, in_process, completed, canceled",
+      );
+    }
+
+    const [count, rows] = await TaskModel.update(
+      { status: newStatus },
+      {
+        where: { id: taskId, collectionId: collectionId },
+        returning: true,
+      },
+    );
+
+    return count > 0 ? (rows[0] ?? null) : null;
+  }
 }
