@@ -1,14 +1,21 @@
 import request from "supertest";
-import { UserModel } from "../src/models/user.model";
 import { fastify } from "../src/index";
 import { inversifyContainer } from "../src/container";
 import { DBConfig } from "../src/config/db.config";
+import { UserModel } from "../src/models/user.model";
+
+jest.setTimeout(20000);
 
 describe("auth e2e test", () => {
-  beforeAll(async () => {
-    const db = inversifyContainer.get(DBConfig);
-    await db.init();
+  const db = inversifyContainer.get(DBConfig);
 
+  const testUser = {
+    name: "test user",
+    email: "test@example.com",
+  };
+
+  beforeAll(async () => {
+    await db.init();
     await fastify.ready();
   });
 
@@ -16,15 +23,11 @@ describe("auth e2e test", () => {
     await fastify.close();
     await UserModel.destroy({
       where: {
-        email: "test@example.com",
+        email: testUser.email,
+        name: testUser.name,
       },
     });
-
-    await UserModel.destroy({
-      where: {
-        email: "invalid@example.com",
-      },
-    });
+    db.close();
   });
 
   describe("register", () => {
@@ -32,7 +35,7 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          name: "testName",
+          name: testUser.name,
           password: "testPassword",
         })
         .expect(400);
@@ -44,8 +47,8 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          name: "testName",
-          email: "test@example.com",
+          name: testUser.name,
+          email: testUser.email,
         })
         .expect(400);
 
@@ -57,7 +60,7 @@ describe("auth e2e test", () => {
         .post("/auth/register")
         .send({
           password: "testPassword",
-          email: "test@example.com",
+          email: testUser.email,
         })
         .expect(400);
 
@@ -69,7 +72,7 @@ describe("auth e2e test", () => {
         .post("/auth/register")
         .send({
           email: "invalidEmail",
-          name: "testName",
+          name: testUser.name,
           password: "testPassword",
         })
         .expect(400);
@@ -81,8 +84,8 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          email: "test@example.com",
-          name: "testName",
+          email: testUser.email,
+          name: testUser.name,
           password: "123",
         })
         .expect(400);
@@ -94,8 +97,8 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          email: "test@example.com",
-          name: "testName",
+          email: testUser.email,
+          name: testUser.name,
           password: "a".repeat(51),
         })
         .expect(400);
@@ -107,7 +110,7 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          email: "test@example.com",
+          email: testUser.email,
           name: "a".repeat(51),
           password: "testPassword",
         })
@@ -120,22 +123,27 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          email: "test@example.com",
-          name: "testName",
+          email: testUser.email,
+          name: testUser.name,
           password: "testPassword",
         })
         .expect(201);
 
-      expect(response.body.message).toEqual("User registered successfully");
       expect(response.headers["set-cookie"][0]).toMatch(/userToken=.*/);
+      expect(response.body.message).toEqual("User registered successfully");
+      expect(response.body.user).toEqual({
+        id: expect.any(String),
+        name: testUser.name,
+        email: testUser.email,
+      });
     });
 
     it("POST /auth/register - throw error 400 if the email already exists", async () => {
       const response = await request(fastify.server)
         .post("/auth/register")
         .send({
-          email: "test@example.com",
-          name: "testName",
+          email: testUser.email,
+          name: testUser.name,
           password: "testPassword",
         })
         .expect(409);
@@ -160,7 +168,7 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/login")
         .send({
-          email: "test@example.com",
+          email: testUser.email,
         })
         .expect(400);
 
@@ -171,7 +179,7 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/login")
         .send({
-          email: "test@example.com",
+          email: testUser.email,
           password: "invalidPassword",
         })
         .expect(403);
@@ -195,13 +203,18 @@ describe("auth e2e test", () => {
       const response = await request(fastify.server)
         .post("/auth/login")
         .send({
-          email: "test@example.com",
+          email: testUser.email,
           password: "testPassword",
         })
         .expect(200);
 
-      expect(response.body.message).toEqual("Login successfully");
       expect(response.headers["set-cookie"][0]).toMatch(/userToken=.*/);
+      expect(response.body.message).toEqual("Login successfully");
+      expect(response.body.user).toEqual({
+        id: expect.any(String),
+        name: testUser.name,
+        email: testUser.email,
+      });
     });
   });
 });

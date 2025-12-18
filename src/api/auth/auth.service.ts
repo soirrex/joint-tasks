@@ -30,8 +30,14 @@ export class AuthService {
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60,
     });
+
     return {
       message: "User registered successfully",
+      user: {
+        id: createUser.id,
+        email: createUser.email,
+        name: createUser.name,
+      },
     };
   }
 
@@ -59,6 +65,11 @@ export class AuthService {
 
     return {
       message: "Login successfully",
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
     };
   }
 }

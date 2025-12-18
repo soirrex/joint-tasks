@@ -68,7 +68,14 @@ describe("AuthService", () => {
         expect.any(String),
       );
 
-      expect(result.message).toEqual("User registered successfully");
+      expect(result).toEqual({
+        message: "User registered successfully",
+        user: {
+          id: mockUser.id,
+          name: mockUser.name,
+          email: mockUser.email,
+        },
+      });
     });
   });
 
@@ -104,7 +111,14 @@ describe("AuthService", () => {
         mockReplay as FastifyReply,
       );
 
-      expect(result.message).toEqual("Login successfully");
+      expect(result).toEqual({
+        message: "Login successfully",
+        user: {
+          id: mockUser.id,
+          name: mockUser.name,
+          email: mockUser.email,
+        },
+      });
     });
   });
 });

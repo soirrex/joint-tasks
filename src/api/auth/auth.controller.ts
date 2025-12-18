@@ -35,6 +35,14 @@ export class AuthController {
               type: "object",
               properties: {
                 message: { type: "string" },
+                user: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", format: "uuid" },
+                    name: { type: "string" },
+                    email: { type: "string" },
+                  },
+                },
               },
             },
             409: {
@@ -68,6 +76,14 @@ export class AuthController {
               type: "object",
               properties: {
                 message: { type: "string" },
+                user: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", format: "uuid" },
+                    name: { type: "string" },
+                    email: { type: "string" },
+                  },
+                },
               },
             },
             403: {
