@@ -220,16 +220,6 @@ export class CollectionService {
 
     if (!collection) {
       throw new NotFoundError("Collection not found");
-    } else if (
-      collection.userRights!.userId !== userId &&
-      collection.userRights!.rightToDelete !== false &&
-      collection.creatorId !== userId
-    ) {
-      throw new ForbiddenError("You don't have rights to read tasks from this container");
-    }
-
-    if (!collection) {
-      throw new NotFoundError("Collection not found");
     } else if (!collection.userRights) {
       throw new ForbiddenError("You don't have rights to delete tasks from this container");
     } else if (collection.userRights.rightToDelete !== true && collection.creatorId !== userId) {
