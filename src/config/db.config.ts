@@ -35,4 +35,8 @@ export class DBConfig {
       }
     }
   }
+
+  async close() {
+    this.sequelize.close();
+  }
 }
