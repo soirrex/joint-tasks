@@ -35,6 +35,6 @@ export class UserRepository {
       { raw: true },
     );
 
-    return user;
+    return user.get({ plain: true });
   }
 }
