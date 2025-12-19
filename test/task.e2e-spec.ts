@@ -70,7 +70,7 @@ describe("collection e2e tests", () => {
     expect(response3.body.message).toEqual("Collection was created successfully");
     expect(response3.body.collection).toHaveProperty("id");
 
-    mainTestUser.createdCollectionId = response3.body.collections.id;
+    mainTestUser.createdCollectionId = response3.body.collection.id;
   });
 
   afterAll(async () => {
