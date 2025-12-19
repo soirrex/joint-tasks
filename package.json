@@ -12,7 +12,8 @@
     "test:unit": "jest --testMatch '<rootDir>/src/**/*.spec.ts'",
     "test:e2e": "jest --runInBand --detectOpenHandles --testMatch '<rootDir>/test/**/*.e2e-spec.ts'",
     "test:e2e:auth": "jest --runInBand --detectOpenHandles --testMatch '<rootDir>/test/auth.e2e-spec.ts'",
-    "test:e2e:collection": "jest --runInBand --detectOpenHandles --testMatch '<rootDir>/test/collection.e2e-spec.ts'"
+    "test:e2e:collection": "jest --runInBand --detectOpenHandles --testMatch '<rootDir>/test/collection.e2e-spec.ts'",
+    "test:e2e:task": "jest --runInBand --detectOpenHandles --testMatch '<rootDir>/test/task.e2e-spec.ts'"
   },
   "keywords": [],
   "author": "",
