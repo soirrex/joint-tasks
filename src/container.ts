@@ -10,6 +10,8 @@ import { CollectionService } from "./api/collection/collection.service";
 import { OnRequestHooks } from "./common/hooks/on-request.hooks";
 import { DBConfig } from "./config/db.config";
 import { CollectionRepository } from "./repository/collection.repository";
+import { TaskController } from "./api/task/task.controller";
+import { TaskService } from "./api/task/task.service";
 
 export const inversifyContainer = new Container();
 
@@ -21,6 +23,9 @@ inversifyContainer.bind(AuthController).toSelf();
 
 inversifyContainer.bind(CollectionController).toSelf();
 inversifyContainer.bind(CollectionService).toSelf();
+
+inversifyContainer.bind(TaskController).toSelf();
+inversifyContainer.bind(TaskService).toSelf();
 
 inversifyContainer.bind(JwtService).toSelf();
 
