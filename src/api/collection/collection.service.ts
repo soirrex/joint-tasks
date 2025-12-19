@@ -9,7 +9,7 @@ import {
 
 @injectable()
 export class CollectionService {
-  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) {}
+  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) { }
 
   async createCollection(userId: string, name: string) {
     const collection = await this.collectionRepository.createCollection(userId, name);
@@ -43,7 +43,7 @@ export class CollectionService {
     }
 
     if (collection.creatorId !== userId) {
-      throw new ForbiddenError("Only the creator can delete the collectiona");
+      throw new ForbiddenError("Only the creator can delete the collection");
     }
 
     await this.collectionRepository.deleteCollectionById(Number(collectionId));
@@ -149,9 +149,7 @@ export class CollectionService {
 
     if (!collection) {
       throw new NotFoundError("Collection not found");
-    } else if (!collection.userRights) {
-      throw new ForbiddenError("You don't have rights to create a new task");
-    } else if (collection.userRights.rightToCreate !== true) {
+    } else if (collection.userRights!.rightToCreate !== true && collection.creatorId !== userId) {
       throw new ForbiddenError("You don't have rights to create a new task");
     }
 
@@ -254,9 +252,7 @@ export class CollectionService {
 
     if (!collection) {
       throw new NotFoundError("Collection not found");
-    } else if (!collection.userRights) {
-      throw new ForbiddenError("You don't have rights to edit tasks from this container");
-    } else if (collection.userRights.rightToEdit !== true && collection.creatorId !== userId) {
+    } else if (collection.userRights!.rightToEdit !== true && collection.creatorId !== userId) {
       throw new ForbiddenError("You don't have rights to edit tasks from this container");
     }
 

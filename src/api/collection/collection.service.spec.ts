@@ -250,8 +250,25 @@ describe("CollectionService", () => {
         mockCollectionWithUserRights,
       );
 
-      await expect(service.createTask("1", "1", "task name", "low", "description")).rejects.toThrow(
+      await expect(service.createTask("2", "1", "task name", "low", "description")).rejects.toThrow(
         ForbiddenError,
+      );
+    });
+
+    it("create tash if the user is creator of the collectin", async () => {
+      mockCollectionRepository.getCollectionAndUserRights.mockResolvedValue(
+        mockCollectionWithUserRights,
+      );
+
+      mockCollectionRepository.createTaskInCollection.mockResolvedValue(mockTaskModel);
+      const result = await service.createTask("1", "1", "task name", "low", "description");
+
+      expect(result).toEqual({ message: "Task created successfully", task: mockTaskModel });
+      expect(mockCollectionRepository.createTaskInCollection).toHaveBeenCalledWith(
+        1,
+        "task name",
+        "low",
+        "description",
       );
     });
 
@@ -262,7 +279,7 @@ describe("CollectionService", () => {
       );
 
       mockCollectionRepository.createTaskInCollection.mockResolvedValue(mockTaskModel);
-      const result = await service.createTask("1", "1", "task name", "low", "description");
+      const result = await service.createTask("2", "1", "task name", "low", "description");
 
       expect(result).toEqual({ message: "Task created successfully", task: mockTaskModel });
       expect(mockCollectionRepository.createTaskInCollection).toHaveBeenCalledWith(

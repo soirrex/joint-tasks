@@ -74,7 +74,7 @@ export class CollectionController {
   constructor(
     @inject(CollectionService) private collectionService: CollectionService,
     @inject(OnRequestHooks) private onRequestHooks: OnRequestHooks,
-  ) {}
+  ) { }
 
   async registerRouters(fastify: FastifyInstance) {
     fastify.post<CreateCollectionDto>(
@@ -340,7 +340,8 @@ export class CollectionController {
         onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
         schema: {
           summary: "create a new task in the collection",
-          description: "create a new task in the collection",
+          description:
+            'create a new task in the collection, priority field must be only "low", "mid" or "high"',
           tags: ["task"],
           params: {
             type: "object",
@@ -640,7 +641,7 @@ export class CollectionController {
 
     const message = await this.collectionService.deleteCollectionById(userId!, collectionId);
 
-    reply.code(201).send(message);
+    reply.code(200).send(message);
   }
 
   private async addUserOrSetUserRightsInCollection(
