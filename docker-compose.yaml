@@ -1,0 +1,30 @@
+services:
+  backend:
+    build: ./
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_NAME=joint-tasks
+      - DB_USER=Postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=joinTasksPostgre
+      - DB_PORT=5432
+      - JWT_SECRET=joint-tasks
+    networks:
+      - joint-tasks-network
+
+  joinTasksPostgre:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: Postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: "joint-tasks"
+    networks:
+      - joint-tasks-network
+
+networks:
+  joint-tasks-network:
+    driver: bridge
