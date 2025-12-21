@@ -8,6 +8,7 @@ backend project for create tasks together with someone, where you can create a c
 - TypeScript
 - Fastify
 - Postgres
+- Sequelize
 - Docker
 - jest + supertest
 
