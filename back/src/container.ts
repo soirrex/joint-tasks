@@ -12,6 +12,8 @@ import { DBConfig } from "./config/db.config";
 import { CollectionRepository } from "./repository/collection.repository";
 import { TaskController } from "./api/task/task.controller";
 import { TaskService } from "./api/task/task.service";
+import { UserController } from "./api/user/user.controller";
+import { UserService } from "./api/user/user.service";
 
 export const inversifyContainer = new Container();
 
@@ -26,6 +28,9 @@ inversifyContainer.bind(CollectionService).toSelf();
 
 inversifyContainer.bind(TaskController).toSelf();
 inversifyContainer.bind(TaskService).toSelf();
+
+inversifyContainer.bind(UserController).toSelf();
+inversifyContainer.bind(UserService).toSelf();
 
 inversifyContainer.bind(JwtService).toSelf();
 

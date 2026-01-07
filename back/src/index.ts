@@ -9,6 +9,8 @@ import { inversifyContainer } from "./container";
 import { DBConfig } from "./config/db.config";
 import { CollectionController } from "./api/collection/collection.controller";
 import { TaskController } from "./api/task/task.controller";
+import fastifyCors from "@fastify/cors";
+import { UserController } from "./api/user/user.controller";
 
 const fastify = Fastify({
   logger: true,
@@ -38,6 +40,11 @@ declare module "fastify" {
     userId: string | null;
   }
 }
+
+fastify.register(fastifyCors, {
+  origin: "http://localhost:5173",
+  credentials: true,
+});
 
 fastify.register(fastifyCookie);
 fastify.register(fastifySwagger, {
@@ -75,6 +82,11 @@ fastify.register(collectionController.registerRouters.bind(collectionController)
 const taskController = inversifyContainer.get(TaskController);
 fastify.register(taskController.registerRouters.bind(taskController), {
   prefix: "/collections/:collectionId/tasks",
+});
+
+const userController = inversifyContainer.get(UserController);
+fastify.register(userController.registerRouters.bind(userController), {
+  prefix: "/users",
 });
 
 fastify.listen({ port: 3000 }, (err) => {
