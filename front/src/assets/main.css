@@ -70,6 +70,7 @@ form {
   text-decoration: none;
   transition: 0.2s ease;
   font-weight: 600;
+  border: none;
 }
 
 .button:hover,

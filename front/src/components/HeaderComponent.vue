@@ -2,7 +2,10 @@
   <header>
     <div class="mainContainer">
       <p class="title">joint-tasks</p>
-      <div v-if="isAuth" class="buttonsContainer"></div>
+      <div v-if="isAuth" class="buttonsContainer">
+        <button to="/auth/register" class="linkButton" @click="logout">Logout</button>
+        <router-link to="/profile" class="button">Profile</router-link>
+      </div>
       <div v-else class="buttonsContainer">
         <router-link to="/auth/register" class="linkButton">Register</router-link>
         <router-link to="/auth/login" class="button">Login</router-link>
@@ -13,12 +16,25 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import Cookie from "js-cookie";
+import Cookies from "js-cookie";
+import { useRouter } from "vue-router";
+import axios from "axios";
+
+const router = useRouter();
 
 const isAuth = ref(false);
 
+async function logout() {
+  await axios.post(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+    withCredentials: true,
+  });
+
+  Cookies.remove("isAuth");
+  router.push("/");
+}
+
 onMounted(() => {
-  isAuth.value = Cookie.get("isAuth") === "true";
+  isAuth.value = Cookies.get("isAuth") === "true";
 });
 </script>
 
