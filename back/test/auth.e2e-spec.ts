@@ -21,13 +21,13 @@ describe("auth e2e test", () => {
 
   afterAll(async () => {
     await fastify.close();
+
     await UserModel.destroy({
       where: {
         email: testUser.email,
         name: testUser.name,
       },
     });
-    db.close();
   });
 
   describe("register", () => {

@@ -61,14 +61,13 @@ describe("collection e2e tests", () => {
 
   afterAll(async () => {
     await fastify.close();
+
     await UserModel.destroy({
       where: {
         email: { [Op.in]: [mainTestUser.email, subTestUser.email] },
         name: { [Op.in]: [mainTestUser.name, subTestUser.name] },
       },
     });
-
-    db.close();
   });
 
   describe("POST /collections - create new collection", () => {
