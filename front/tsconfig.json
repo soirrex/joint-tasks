@@ -1,12 +1,17 @@
 {
   "files": [],
-  "include": ["env.d.ts"],
+  "include": ["env.d.ts", "src/**/*.d.ts", "src/**/*.vue", "src/**/*.ts"],
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
+
   "references": [
     {
       "path": "./tsconfig.node.json"
