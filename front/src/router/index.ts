@@ -40,6 +40,18 @@ const router = createRouter({
       component: () => import("@/views/CreateTaskView.vue"),
       props: true,
     },
+    {
+      path: "/collections/:id/add/user",
+      name: "add user to collection",
+      component: () => import("@/views/AddUserToCollectionView.vue"),
+      props: true,
+    },
+    {
+      path: "/collections/:id/users",
+      name: "all users in collection",
+      component: () => import("@/views/UsersRightsInCollectionView.vue"),
+      props: true,
+    },
   ],
 });
 
