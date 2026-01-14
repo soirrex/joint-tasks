@@ -4,6 +4,7 @@ import { UserRightsModel } from "../models/user-rights.model";
 import { BadRequestError } from "../common/classes/error.class";
 import { TaskModel } from "../models/task.model";
 import { literal, Op, Sequelize } from "sequelize";
+import { UserModel } from "../models/user.model";
 
 @injectable()
 export class CollectionRepository {
@@ -81,6 +82,20 @@ export class CollectionRepository {
       where: {
         id: id,
       },
+    });
+  }
+
+  async getUsersFromCollection(collectionId: number) {
+    return await UserModel.findAll({
+      attributes: ["id", "email", "name"],
+      include: [
+        {
+          model: UserRightsModel,
+          as: "userRights",
+          where: { collectionId: collectionId },
+          attributes: ["rightToCreate", "rightToEdit", "rightToDelete", "rightToChangeStatus"],
+        },
+      ],
     });
   }
 

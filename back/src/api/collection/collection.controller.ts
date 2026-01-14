@@ -186,6 +186,67 @@ export class CollectionController {
       this.deleteCollectionById.bind(this),
     );
 
+    fastify.get<{ Params: { collectionId: string } }>(
+      "/:collectionId/users",
+      {
+        onRequest: this.onRequestHooks.isAuthHook.bind(this.onRequestHooks),
+        schema: {
+          summary: "get users who have rights in this collection",
+          description: "get users who have rights in this collection",
+          tags: ["collection"],
+          params: {
+            type: "object",
+            properties: {
+              collectionId: { type: "string", description: "collection id" },
+            },
+            required: ["collectionId"],
+          },
+          response: {
+            200: {
+              description: "the length of the userRights array is always 1",
+              type: "object",
+              properties: {
+                users: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      email: { type: "string" },
+                      name: { type: "string" },
+                      userRights: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            rightToCreate: { type: "boolean" },
+                            rightToEdit: { type: "boolean" },
+                            rightToDelete: { type: "boolean" },
+                            rightToChangeStatus: { type: "boolean" },
+                          },
+                          required: [
+                            "rightToCreate",
+                            "rightToEdit",
+                            "rightToDelete",
+                            "rightToChangeStatus",
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            401: {
+              description: "Unauthorized",
+              $ref: "ErrorResponseSchema",
+            },
+          },
+        },
+      },
+      this.getUsersFromCollection.bind(this),
+    );
+
     fastify.patch<SetUserRightsInCollectionDto>(
       "/:collectionId/users/:userId",
       {
@@ -316,6 +377,18 @@ export class CollectionController {
     const { limit, page } = request.query;
 
     const message = await this.collectionService.getUserCollections(userId!, limit, page);
+
+    reply.code(200).send(message);
+  }
+
+  private async getUsersFromCollection(
+    request: FastifyRequest & { params: { collectionId: string } },
+    reply: FastifyReply,
+  ) {
+    const collectionId = request.params.collectionId;
+    const userId = request.userId;
+
+    const message = await this.collectionService.getUserFromCollection(userId!, collectionId);
 
     reply.code(200).send(message);
   }

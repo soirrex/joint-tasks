@@ -48,6 +48,18 @@ export class CollectionService {
     };
   }
 
+  async getUserFromCollection(userId: string, collectionId: string) {
+    if (isNaN(parseInt(collectionId))) {
+      throw new BadRequestError("'collectionId' must be a number");
+    }
+
+    const users = await this.collectionRepository.getUsersFromCollection(Number(collectionId));
+
+    return {
+      users,
+    };
+  }
+
   async addUserOrSetUserRightsInCollection(
     requestUserId: string,
     addUserId: string,
