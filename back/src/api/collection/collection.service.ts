@@ -4,7 +4,7 @@ import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/cla
 
 @injectable()
 export class CollectionService {
-  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) {}
+  constructor(@inject(CollectionRepository) private collectionRepository: CollectionRepository) { }
 
   async createCollection(userId: string, name: string) {
     const collection = await this.collectionRepository.createCollection(userId, name);
@@ -51,6 +51,17 @@ export class CollectionService {
   async getUserFromCollection(userId: string, collectionId: string) {
     if (isNaN(parseInt(collectionId))) {
       throw new BadRequestError("'collectionId' must be a number");
+    }
+
+    const collection = await this.collectionRepository.getCollectionAndUserRights(
+      userId,
+      Number(collectionId),
+    );
+
+    if (!collection) {
+      throw new NotFoundError("Collection not found");
+    } else if (collection.userRights!.userId !== userId && collection.creatorId !== userId) {
+      throw new ForbiddenError("You don't have rights");
     }
 
     const users = await this.collectionRepository.getUsersFromCollection(Number(collectionId));
