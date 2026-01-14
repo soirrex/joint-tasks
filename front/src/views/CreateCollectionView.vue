@@ -27,7 +27,7 @@ async function submitForm() {
     await axios.post(
       `${import.meta.env.VITE_API_URL}/collections`,
       {
-        name: name,
+        name: collectionName.value,
       },
       {
         withCredentials: true,
